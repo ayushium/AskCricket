@@ -1,11 +1,15 @@
 /**
- * Azure OpenAI Responses API wrapper (used by gpt-5.4-mini and newer models).
- * Endpoint: /openai/responses  (NOT /openai/deployments/{name}/chat/completions)
- * Differences from Chat Completions:
- *   - `input` instead of `messages` (string or array)
- *   - `max_output_tokens` instead of `max_completion_tokens`
- *   - tool calls returned inside `output[].content[]` not `choices[].message`
- *   - response parsed from `output[0].content[0].text`
+ * Azure OpenAI Responses API wrapper.
+ *
+ * gpt-5.4-mini uses /openai/responses, not /openai/deployments/{name}/chat/completions.
+ * Key differences from Chat Completions:
+ *   - system message → `instructions` field (not part of `input`)
+ *   - assistant tool calls → type:"function_call" items in `input`
+ *   - tool results → type:"function_call_output" items in `input`
+ *   - response text lives in output[].content[].text, not choices[].message.content
+ *
+ * normaliseToChatCompletions() maps the response back to Chat Completions shape
+ * so agent.js requires no changes.
  */
 
 export async function callAzureChat(env, { messages, tools, tool_choice, response_format, temperature, max_tokens }) {
@@ -13,12 +17,9 @@ export async function callAzureChat(env, { messages, tools, tool_choice, respons
     `${env.AZURE_OPENAI_ENDPOINT}/openai/responses` +
     `?api-version=${env.AZURE_OPENAI_API_VERSION}`;
 
-  // Convert messages array → Responses API `input` format
-  // System message goes into `instructions`, rest into `input`
   const systemMsg = messages.find(m => m.role === "system");
   const nonSystem = messages.filter(m => m.role !== "system");
 
-  // Build input: string for single user turn, array for multi-turn
   const input = nonSystem.map(m => {
     if (m.role === "tool") {
       return {
@@ -60,7 +61,8 @@ export async function callAzureChat(env, { messages, tools, tool_choice, respons
 
   if (response_format?.type === "json_object") {
     body.text = { format: { type: "json_object" } };
-    // Responses API requires the word "json" to appear in input (not just instructions)
+    // The word "json" must appear in the input array itself — putting it only in
+    // `instructions` triggers a 400: "must contain the word 'json' in some form".
     const lastMsg = body.input.findLast?.(i => i.role === "user") ?? body.input[body.input.length - 1];
     if (lastMsg && typeof lastMsg.content === "string") {
       lastMsg.content += " Respond in JSON format.";
@@ -82,8 +84,6 @@ export async function callAzureChat(env, { messages, tools, tool_choice, respons
   }
 
   const data = await res.json();
-
-  // Normalise response → Chat Completions shape so agent.js needs no changes
   return normaliseToChatCompletions(data);
 }
 
@@ -91,8 +91,6 @@ function normaliseToChatCompletions(data) {
   if (data.error) throw new Error(`Azure error: ${data.error.message}`);
 
   const output = data.output ?? [];
-
-  // Collect tool calls and text from output items
   const toolCalls = [];
   let textContent = null;
 

@@ -1,5 +1,4 @@
-// ─── Constants ────────────────────────────────────────────────────────────────
-
+// Sorted longest-first so multi-word names (e.g. "V Kohli") match before single-word substrings
 const KNOWN_PLAYERS = [
   "V Kohli","JJ Bumrah","Rashid Khan","MS Dhoni","RG Sharma","RD Gaikwad",
   "SA Yadav","HH Pandya","GJ Maxwell","F du Plessis","TM Head","YBK Jaiswal",
@@ -18,7 +17,6 @@ const STAT_CARDS = [
   { label: "Venues",     value: "14",     sub: "stadiums",           icon: "📍",  bg: "bg-teal-50",    num: "text-teal-600"    },
 ];
 
-// ─── DOM refs ─────────────────────────────────────────────────────────────────
 const form        = document.getElementById("ask-form");
 const input       = document.getElementById("q");
 const chatHistory = document.getElementById("chat-history");
@@ -27,11 +25,9 @@ const dashboard   = document.getElementById("stats-dashboard");
 const submitBtn   = document.getElementById("submit-btn");
 const clearBtn    = document.getElementById("clear-btn");
 
-// ─── State ────────────────────────────────────────────────────────────────────
 let isAsking     = false;
 let activeSource = null;
 
-// ─── Init: stat cards ─────────────────────────────────────────────────────────
 (function initDashboard() {
   const grid = document.getElementById("stat-cards");
   STAT_CARDS.forEach((card, i) => {
@@ -48,7 +44,6 @@ let activeSource = null;
   });
 })();
 
-// ─── Event listeners ──────────────────────────────────────────────────────────
 form.addEventListener("submit", (e) => {
   e.preventDefault();
   const q = input.value.trim();
@@ -65,7 +60,6 @@ document.querySelectorAll(".suggestion").forEach(btn =>
   btn.addEventListener("click", () => { input.value = btn.querySelector("span:nth-child(2)").textContent.trim(); form.requestSubmit(); })
 );
 
-// ─── Core ask flow ────────────────────────────────────────────────────────────
 function ask(q) {
   isAsking = true;
   submitBtn.disabled = true;
@@ -111,7 +105,6 @@ function ask(q) {
   });
 }
 
-// ─── Chat bubbles ─────────────────────────────────────────────────────────────
 function appendUserBubble(q) {
   const el = document.createElement("div");
   el.className = "chat-bubble fade-up flex justify-end";
@@ -153,17 +146,13 @@ function appendAssistantBubble() {
   };
 }
 
-// ─── Answer card ──────────────────────────────────────────────────────────────
 function buildAnswerCard(p) {
   return `
     <div class="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
-      <!-- Headline -->
       <div class="px-5 pt-5 pb-3 border-b border-gray-100">
         <p class="text-xs font-semibold text-emerald-600 uppercase tracking-wide mb-1">Insight</p>
         <h2 class="font-bold text-gray-900 text-base leading-snug">${escHtml(p.headline || "")}</h2>
       </div>
-
-      <!-- Body -->
       <div class="px-5 py-4 space-y-4">
         <p class="text-gray-600 text-sm leading-relaxed">${linkifyPlayers(escHtml(p.insight || ""))}</p>
         <div class="chart-slot"></div>
@@ -172,8 +161,6 @@ function buildAnswerCard(p) {
             <span>📚</span><span>${escHtml(p.sources)}</span>
           </div>` : ""}
       </div>
-
-      <!-- Follow-ups -->
       ${buildFollowups(p.followups || [])}
     </div>
   `;
@@ -211,7 +198,6 @@ function wireCard(container, payload) {
   }
 }
 
-// ─── Player linkification ─────────────────────────────────────────────────────
 function linkifyPlayers(html) {
   KNOWN_PLAYERS.forEach(player => {
     const esc = player.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -223,7 +209,6 @@ function linkifyPlayers(html) {
   return html;
 }
 
-// ─── SVG chart ────────────────────────────────────────────────────────────────
 function renderChart({ type, labels, values, unit }, container) {
   const W = 340, H = 130, PX = 24, PY = 16;
   const innerW = W - PX * 2, innerH = H - PY * 2;
@@ -267,7 +252,6 @@ function renderChart({ type, labels, values, unit }, container) {
   `;
 }
 
-// ─── Reasoning chips ──────────────────────────────────────────────────────────
 function addChip(icon, text, isLoading = false) {
   const span = document.createElement("span");
   span.className = "chip-enter flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white border border-gray-200 text-xs text-gray-500 shadow-sm";
@@ -277,7 +261,6 @@ function addChip(icon, text, isLoading = false) {
   trace.appendChild(span);
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
 function prettyArgs(args) {
   return Object.entries(args).slice(0, 2).map(([k, v]) => `${k}:${JSON.stringify(v)}`).join(", ");
 }

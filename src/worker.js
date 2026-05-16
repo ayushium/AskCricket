@@ -1,7 +1,3 @@
-// To run locally: `npx wrangler dev`
-// To deploy:      `npx wrangler deploy`
-// To set secret:  `npx wrangler secret put AZURE_OPENAI_KEY`
-
 import { runAgent } from "./agent.js";
 
 export default {

@@ -1,15 +1,9 @@
 /**
- * Tool implementations — pure JS functions over the bundled delivery dataset.
- * No I/O, no async, no side effects. All functions are safe to call from the agent loop.
- *
- * Dataset shape (per delivery row):
- * { match_id, season, date, stage, innings, over, ball, batter, bowler,
- *   runs_batter, runs_extras, wicket, phase, venue, team_batting, team_bowling, result }
+ * Pure synchronous tools over the bundled ball-by-ball dataset.
+ * Each function must stay sync — no I/O, no async — so the agent loop can call them inline.
  */
 
 import DELIVERIES from "./data.json" with { type: "json" };
-
-// ─── helpers ────────────────────────────────────────────────────────────────
 
 function matches(str, query) {
   return str.toLowerCase().includes(query.toLowerCase());
@@ -56,8 +50,6 @@ function bowlingStats(rows) {
   };
 }
 
-// ─── T2.1 — get_player_stats ─────────────────────────────────────────────────
-
 export function get_player_stats({ player, phase, vs_team, season }) {
   if (!player) return { error: "player is required" };
 
@@ -77,8 +69,6 @@ export function get_player_stats({ player, phase, vs_team, season }) {
   };
 }
 
-// ─── T2.2 — compare_players ──────────────────────────────────────────────────
-
 export function compare_players({ players, metric, filters = {} }) {
   if (!players || players.length < 2) return { error: "provide at least 2 players" };
 
@@ -87,7 +77,6 @@ export function compare_players({ players, metric, filters = {} }) {
     return { error: `metric must be one of: ${validMetrics.join(", ")}` };
   }
 
-  // filters may include { phase, vs_team, season }
   const rows = players.map((player) => {
     const stats = get_player_stats({ player, ...filters });
     const isBowlingMetric = ["economy", "wickets", "dot_pct"].includes(metric);
@@ -106,8 +95,6 @@ export function compare_players({ players, metric, filters = {} }) {
 
   return { metric, filters, rows: sorted };
 }
-
-// ─── T2.3 — match_context ────────────────────────────────────────────────────
 
 export function match_context({ match_id }) {
   if (!match_id) return { error: "match_id is required" };
@@ -139,8 +126,6 @@ export function match_context({ match_id }) {
   };
 }
 
-// ─── T2.3b — find_matches ────────────────────────────────────────────────────
-
 export function find_matches({ season, stage, team }) {
   const matchMap = new Map();
   for (const r of DELIVERIES) {
@@ -167,12 +152,10 @@ export function find_matches({ season, stage, team }) {
   return { filters: { season, stage, team }, matches: result };
 }
 
-// ─── T2.4 — clutch_index ─────────────────────────────────────────────────────
-
 export function clutch_index({ player, season, definition }) {
   if (!player) return { error: "player is required" };
 
-  // Scope: death overs in 2nd innings (chases) — the highest-pressure situation
+  // Death overs in 2nd innings (chases) are the highest-pressure at-bats in T20
   let deathRows = DELIVERIES.filter(
     (r) => r.phase === "death" && r.innings === 2
   );
@@ -199,19 +182,15 @@ export function clutch_index({ player, season, definition }) {
 
   if (role === "batter") {
     const stats = battingStats(battingRows);
-    // SR: 80→0, 200→100
-    performance_component = mapClamp(stats.strike_rate, 80, 200);
-    // boundary %: 0→0, 40→100
-    pressure_component = mapClamp(stats.boundary_pct, 0, 40);
+    performance_component = mapClamp(stats.strike_rate, 80, 200);  // SR 80→0, 200→100
+    pressure_component    = mapClamp(stats.boundary_pct, 0, 40);   // boundary% 0→0, 40→100
   } else {
     const stats = bowlingStats(bowlingRows);
-    // economy: 12→0, 6→100 (lower economy = better)
-    performance_component = mapClamp(stats.economy, 12, 6);
-    // dot %: 0→0, 60→100
-    pressure_component = mapClamp(stats.dot_pct, 0, 60);
+    performance_component = mapClamp(stats.economy, 12, 6);        // economy 12→0, 6→100 (inverted)
+    pressure_component    = mapClamp(stats.dot_pct, 0, 60);        // dot% 0→0, 60→100
   }
 
-  // Confidence: caps at 50 balls for full weight
+  // Sample size caps at 50 balls — below that, confidence discounts the score
   const confidence_component = mapClamp(sample_size, 0, 50);
 
   const score = Math.round(
@@ -241,8 +220,6 @@ export function clutch_index({ player, season, definition }) {
   };
 }
 
-// ─── T2.5 — head_to_head ─────────────────────────────────────────────────────
-
 export function head_to_head({ batter, bowler, season }) {
   if (!batter || !bowler) return { error: "batter and bowler are required" };
 
@@ -269,8 +246,6 @@ export function head_to_head({ batter, bowler, season }) {
     boundary_pct: stats.boundary_pct,
   };
 }
-
-// ─── T2.6 — Tool registry + OpenAI function-calling schemas ──────────────────
 
 export const TOOLS = {
   get_player_stats,

@@ -1,8 +1,3 @@
-/**
- * Agentic function-calling loop over Azure OpenAI gpt-4o-mini.
- * Yields SSE-ready events: { type: 'tool_call', name, args } | { type: 'final', payload }
- */
-
 import { callAzureChat } from "./azure.js";
 import { TOOLS, TOOL_SCHEMAS } from "./tools.js";
 
@@ -45,9 +40,9 @@ export async function* runAgent(env, userQuestion) {
     const completion = await callAzureChat(env, {
       messages,
       tools: TOOL_SCHEMAS,
-      // Force tool use on first round so the agent never skips straight to answer
+      // "required" on round 0 prevents the model from skipping straight to a guessed answer
       tool_choice: round === 0 ? "required" : "auto",
-      // Only enable json_object mode after tools have been called (round > 0)
+      // json_object mode only after round 0 — the first round must be a tool call, not a JSON response
       response_format: round > 0 ? { type: "json_object" } : undefined,
     });
 
@@ -65,7 +60,7 @@ export async function* runAgent(env, userQuestion) {
           args = {};
         }
 
-        // Emit tool_call event BEFORE executing so UI chips animate in real-time
+        // Yield before executing so the UI chip appears while the tool runs
         yield { type: "tool_call", name: tc.function.name, args };
 
         const fn = TOOLS[tc.function.name];
@@ -85,12 +80,11 @@ export async function* runAgent(env, userQuestion) {
       continue;
     }
 
-    // No tool calls → parse final answer
     let payload;
     try {
       payload = JSON.parse(msg.content);
     } catch {
-      // Model returned non-JSON — wrap gracefully
+      // Model occasionally returns prose instead of JSON despite the format constraint
       payload = {
         headline: "Analysis complete",
         insight: msg.content || "No structured response returned.",
@@ -104,7 +98,7 @@ export async function* runAgent(env, userQuestion) {
     return;
   }
 
-  // Safety: hit MAX_ROUNDS without a final answer
+  // Reached MAX_ROUNDS without a conclusive answer — surface a graceful fallback
   yield {
     type: "final",
     payload: {
