@@ -10,12 +10,12 @@ const KNOWN_PLAYERS = [
 ].sort((a, b) => b.length - a.length);
 
 const STAT_CARDS = [
-  { label: "Matches",    value: "10",    sub: "IPL 2024",           icon: "🏟️",  bg: "bg-blue-50",    num: "text-blue-600"    },
-  { label: "Deliveries", value: "2,447", sub: "ball-by-ball",       icon: "🏏",  bg: "bg-emerald-50", num: "text-emerald-600" },
-  { label: "Players",    value: "82",    sub: "unique batters",     icon: "👤",  bg: "bg-violet-50",  num: "text-violet-600"  },
-  { label: "Teams",      value: "9",     sub: "IPL franchises",     icon: "🏆",  bg: "bg-amber-50",   num: "text-amber-600"   },
-  { label: "Wickets",    value: "121",   sub: "across all matches", icon: "🎯",  bg: "bg-rose-50",    num: "text-rose-600"    },
-  { label: "Venues",     value: "5",     sub: "stadiums",           icon: "📍",  bg: "bg-teal-50",    num: "text-teal-600"    },
+  { label: "Matches",    value: "145",    sub: "IPL 2024 & 2025",    icon: "🏟️",  bg: "bg-blue-50",    num: "text-blue-600"    },
+  { label: "Deliveries", value: "34,388", sub: "ball-by-ball",       icon: "🏏",  bg: "bg-emerald-50", num: "text-emerald-600" },
+  { label: "Players",    value: "222",    sub: "unique batters",     icon: "👤",  bg: "bg-violet-50",  num: "text-violet-600"  },
+  { label: "Teams",      value: "10",     sub: "all IPL franchises", icon: "🏆",  bg: "bg-amber-50",   num: "text-amber-600"   },
+  { label: "Wickets",    value: "1,756",  sub: "across all matches", icon: "🎯",  bg: "bg-rose-50",    num: "text-rose-600"    },
+  { label: "Venues",     value: "14",     sub: "stadiums",           icon: "📍",  bg: "bg-teal-50",    num: "text-teal-600"    },
 ];
 
 // ─── DOM refs ─────────────────────────────────────────────────────────────────
@@ -76,7 +76,7 @@ function ask(q) {
   trace.innerHTML = "";
   addChip("🤔", "Thinking…", true);
 
-  const { setFinalAnswer, setError, traceEl } = appendAssistantBubble();
+  const { setFinalAnswer, setError } = appendAssistantBubble();
 
   if (activeSource) activeSource.close();
   const es = new EventSource(`/api/ask?q=${encodeURIComponent(q)}`);
@@ -85,7 +85,6 @@ function ask(q) {
   es.addEventListener("tool_call", (e) => {
     const data = JSON.parse(e.data);
     addChip("🔧", `${data.name}(${prettyArgs(data.args)})`);
-    traceEl.innerHTML = trace.innerHTML;
   });
 
   es.addEventListener("final", (e) => {
@@ -130,8 +129,7 @@ function appendAssistantBubble() {
   wrap.className = "chat-bubble fade-up flex gap-3 items-start";
   wrap.innerHTML = `
     <div class="w-8 h-8 rounded-xl bg-emerald-500 flex items-center justify-center flex-shrink-0 shadow-sm text-sm">🏏</div>
-    <div class="flex-1 min-w-0 space-y-2">
-      <div class="bubble-trace flex flex-wrap gap-1.5"></div>
+    <div class="flex-1 min-w-0">
       <div class="bubble-body">
         <div class="inline-flex items-center gap-1 bg-white border border-gray-200 rounded-xl px-4 py-3 text-gray-400 text-sm shadow-sm">
           <span class="dot">•</span><span class="dot">•</span><span class="dot">•</span>
@@ -142,11 +140,9 @@ function appendAssistantBubble() {
   chatHistory.appendChild(wrap);
   scrollBottom();
 
-  const traceEl = wrap.querySelector(".bubble-trace");
-  const bodyEl  = wrap.querySelector(".bubble-body");
+  const bodyEl = wrap.querySelector(".bubble-body");
 
   return {
-    traceEl,
     setFinalAnswer(payload) {
       bodyEl.innerHTML = buildAnswerCard(payload);
       wireCard(bodyEl, payload);
