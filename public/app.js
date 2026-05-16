@@ -32,12 +32,14 @@ let activeSource = null;
   const grid = document.getElementById("stat-cards");
   STAT_CARDS.forEach((card, i) => {
     const el = document.createElement("div");
-    el.className = `count-up flex items-center gap-2.5 bg-white border ${card.border} rounded-xl px-4 py-2.5 cursor-default shadow-sm`;
+    el.className = `count-up flex items-center gap-3 bg-white border ${card.border} rounded-2xl px-5 py-4 cursor-default shadow-sm`;
     el.style.animationDelay = `${i * 60}ms`;
     el.innerHTML = `
-      <span class="text-base">${card.icon}</span>
-      <span class="font-bold ${card.num} text-base">${escHtml(card.value)}</span>
-      <span class="text-xs text-gray-500">${escHtml(card.label)}</span>
+      <span class="text-2xl">${card.icon}</span>
+      <div>
+        <div class="font-bold ${card.num} text-xl leading-none">${escHtml(card.value)}</div>
+        <div class="text-xs text-gray-500 mt-0.5">${escHtml(card.label)}</div>
+      </div>
     `;
     grid.appendChild(el);
   });
