@@ -15,7 +15,7 @@
   // Non-sensitive deployment config only — all credentials are wrangler secrets
   "vars": {
     "AZURE_OPENAI_DEPLOYMENT": "gpt-5.4-mini",
-    "AZURE_OPENAI_API_VERSION": "2026-03-17",
+    "AZURE_OPENAI_API_VERSION": "2025-04-01-preview",
   },
 
   // Secrets (never commit these — set via wrangler CLI):
