@@ -3,8 +3,8 @@
  * No I/O, no async, no side effects. All functions are safe to call from the agent loop.
  *
  * Dataset shape (per delivery row):
- * { match_id, innings, over, ball, batter, bowler, runs_batter, runs_extras,
- *   wicket, phase, venue, team_batting, team_bowling, result }
+ * { match_id, season, date, stage, innings, over, ball, batter, bowler,
+ *   runs_batter, runs_extras, wicket, phase, venue, team_batting, team_bowling, result }
  */
 
 import DELIVERIES from "./data.json" with { type: "json" };
@@ -58,10 +58,11 @@ function bowlingStats(rows) {
 
 // ─── T2.1 — get_player_stats ─────────────────────────────────────────────────
 
-export function get_player_stats({ player, phase, vs_team }) {
+export function get_player_stats({ player, phase, vs_team, season }) {
   if (!player) return { error: "player is required" };
 
   let rows = DELIVERIES;
+  if (season) rows = rows.filter((r) => r.season === String(season));
   if (phase) rows = rows.filter((r) => r.phase === phase);
   if (vs_team) rows = rows.filter((r) => matches(r.team_bowling, vs_team) || matches(r.team_batting, vs_team));
 
@@ -70,7 +71,7 @@ export function get_player_stats({ player, phase, vs_team }) {
 
   return {
     player,
-    filters: { phase: phase || "all", vs_team: vs_team || "all" },
+    filters: { season: season || "all", phase: phase || "all", vs_team: vs_team || "all" },
     batting: battingStats(battingRows),
     bowling: bowlingStats(bowlingRows),
   };
@@ -86,6 +87,7 @@ export function compare_players({ players, metric, filters = {} }) {
     return { error: `metric must be one of: ${validMetrics.join(", ")}` };
   }
 
+  // filters may include { phase, vs_team, season }
   const rows = players.map((player) => {
     const stats = get_player_stats({ player, ...filters });
     const isBowlingMetric = ["economy", "wickets", "dot_pct"].includes(metric);
@@ -124,6 +126,9 @@ export function match_context({ match_id }) {
 
   return {
     match_id,
+    season: sample.season,
+    date: sample.date,
+    stage: sample.stage,
     teams,
     venue: sample.venue,
     result: sample.result,
@@ -134,15 +139,44 @@ export function match_context({ match_id }) {
   };
 }
 
+// ─── T2.3b — find_matches ────────────────────────────────────────────────────
+
+export function find_matches({ season, stage, team }) {
+  const matchMap = new Map();
+  for (const r of DELIVERIES) {
+    if (season && r.season !== String(season)) continue;
+    if (stage && !r.stage.toLowerCase().includes(stage.toLowerCase())) continue;
+    if (team && !matches(r.team_batting, team) && !matches(r.team_bowling, team)) continue;
+    if (!matchMap.has(r.match_id)) {
+      matchMap.set(r.match_id, {
+        match_id: r.match_id,
+        season: r.season,
+        date: r.date,
+        stage: r.stage,
+        venue: r.venue,
+        result: r.result,
+        teams: new Set(),
+      });
+    }
+    matchMap.get(r.match_id).teams.add(r.team_batting);
+  }
+
+  const result = [...matchMap.values()].map((m) => ({ ...m, teams: [...m.teams] }));
+  result.sort((a, b) => a.date.localeCompare(b.date));
+
+  return { filters: { season, stage, team }, matches: result };
+}
+
 // ─── T2.4 — clutch_index ─────────────────────────────────────────────────────
 
-export function clutch_index({ player, definition }) {
+export function clutch_index({ player, season, definition }) {
   if (!player) return { error: "player is required" };
 
   // Scope: death overs in 2nd innings (chases) — the highest-pressure situation
-  const deathRows = DELIVERIES.filter(
+  let deathRows = DELIVERIES.filter(
     (r) => r.phase === "death" && r.innings === 2
   );
+  if (season) deathRows = deathRows.filter((r) => r.season === String(season));
 
   const battingRows = deathRows.filter((r) => matches(r.batter, player));
   const bowlingRows = deathRows.filter((r) => matches(r.bowler, player));
@@ -209,12 +243,13 @@ export function clutch_index({ player, definition }) {
 
 // ─── T2.5 — head_to_head ─────────────────────────────────────────────────────
 
-export function head_to_head({ batter, bowler }) {
+export function head_to_head({ batter, bowler, season }) {
   if (!batter || !bowler) return { error: "batter and bowler are required" };
 
-  const rows = DELIVERIES.filter(
+  let rows = DELIVERIES.filter(
     (r) => matches(r.batter, batter) && matches(r.bowler, bowler)
   );
+  if (season) rows = rows.filter((r) => r.season === String(season));
 
   if (rows.length === 0) {
     return { batter, bowler, balls: 0, runs: 0, dismissals: 0, strike_rate: 0, dot_pct: 0, boundary_pct: 0 };
@@ -241,6 +276,7 @@ export const TOOLS = {
   get_player_stats,
   compare_players,
   match_context,
+  find_matches,
   clutch_index,
   head_to_head,
 };
@@ -256,6 +292,7 @@ export const TOOL_SCHEMAS = [
         type: "object",
         properties: {
           player: { type: "string", description: "Player name, e.g. 'Kohli', 'Bumrah'" },
+          season: { type: "string", enum: ["2024", "2025"], description: "IPL season to filter by — ALWAYS set this when the question mentions a specific year" },
           phase: {
             type: "string",
             enum: ["powerplay", "middle", "death"],
@@ -288,10 +325,11 @@ export const TOOL_SCHEMAS = [
           },
           filters: {
             type: "object",
-            description: "Optional filters: { phase, vs_team }",
+            description: "Optional filters: { phase, vs_team, season }",
             properties: {
               phase: { type: "string", enum: ["powerplay", "middle", "death"] },
               vs_team: { type: "string" },
+              season: { type: "string", enum: ["2024", "2025"] },
             },
           },
         },
@@ -304,7 +342,7 @@ export const TOOL_SCHEMAS = [
     function: {
       name: "match_context",
       description:
-        "Get match metadata — teams, venue, scores, result — for a given match ID. Use to provide background context for a specific game.",
+        "Get match metadata — teams, venue, scores, result — for a given match ID. Use to provide background context for a specific game. Response now includes season, date, and stage fields.",
       parameters: {
         type: "object",
         properties: {
@@ -320,6 +358,22 @@ export const TOOL_SCHEMAS = [
   {
     type: "function",
     function: {
+      name: "find_matches",
+      description:
+        "Find matches by season (2024 or 2025), stage (e.g. 'Final', 'Qualifier'), or team. Use this FIRST when the question mentions 'IPL 2024 final', 'IPL 2025 winner', 'playoffs', etc. Returns match_id, date, stage, teams, result.",
+      parameters: {
+        type: "object",
+        properties: {
+          season: { type: "string", enum: ["2024", "2025"], description: "IPL season" },
+          stage: { type: "string", description: "Match stage, e.g. 'Final', 'Qualifier 1', 'Eliminator'" },
+          team: { type: "string", description: "Filter to matches involving this team" },
+        },
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
       name: "clutch_index",
       description:
         "Compute a player's clutch index (0–100) — a composite score measuring performance in death overs during chases. Use for 'was X clutch?' or 'who performs under pressure?' questions.",
@@ -327,6 +381,7 @@ export const TOOL_SCHEMAS = [
         type: "object",
         properties: {
           player: { type: "string", description: "Player name" },
+          season: { type: "string", enum: ["2024", "2025"], description: "IPL season to scope the calculation" },
           definition: {
             type: "string",
             description: "Optional custom definition of 'clutch' (default: death overs in 2nd innings)",
@@ -347,6 +402,7 @@ export const TOOL_SCHEMAS = [
         properties: {
           batter: { type: "string", description: "Batter's name" },
           bowler: { type: "string", description: "Bowler's name" },
+          season: { type: "string", enum: ["2024", "2025"], description: "IPL season to filter" },
         },
         required: ["batter", "bowler"],
       },

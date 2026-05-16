@@ -16,6 +16,7 @@ Scope:
 Rules:
 1. ALWAYS call at least one tool before writing your final answer. Never guess stats.
 2. Use multiple tools if needed to fully answer the question.
+2a. SEASON AWARENESS: If the question mentions "IPL 2024" or "2024 season", always pass season="2024" to tools. For "IPL 2025" or "2025 season", pass season="2025". For "final" or "winner" questions, call find_matches first with the correct season to get the right match_id before calling match_context.
 3. After gathering data, respond ONLY with this exact JSON structure:
 {
   "headline": "<one punchy sentence, max 15 words>",

@@ -29,6 +29,9 @@ function processMatch(filePath) {
   const outcome = info.outcome ?? {};
   const result = outcome.winner ?? outcome.result ?? "no result";
   const matchId = basename(filePath, ".json");
+  const date = (info.dates ?? [])[0] ?? "";
+  const season = date.startsWith("2025") ? "2025" : date.startsWith("2024") ? "2024" : "unknown";
+  const stage = info.event?.stage ?? "";
 
   const rows = [];
 
@@ -45,6 +48,9 @@ function processMatch(filePath) {
         const runs = delivery.runs ?? {};
         rows.push({
           match_id: matchId,
+          season,
+          date,
+          stage,
           innings: inningsNum,
           over: overNum,
           ball: ballIdx + 1,
