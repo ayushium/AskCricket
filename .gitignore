@@ -1,0 +1,11 @@
+node_modules/
+dist/
+build/
+.env
+.vscode/
+.dev.vars
+raw_matches/*.json
+ipl_json.zip
+ipl_json_all/
+src/data.json
+.wrangler/

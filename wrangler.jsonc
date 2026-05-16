@@ -1,0 +1,24 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "askcricket",
+  "main": "src/worker.js",
+  "compatibility_date": "2025-01-01",
+
+  // Static frontend assets served from ./public
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "404-page"
+  },
+
+  // Non-sensitive deployment config only — all credentials are wrangler secrets
+  "vars": {
+    "AZURE_OPENAI_DEPLOYMENT": "gpt-4.1",
+    "AZURE_OPENAI_API_VERSION": "2025-01-01-preview"
+  }
+
+  // Secrets (never commit these — set via wrangler CLI):
+  //   npx wrangler secret put AZURE_OPENAI_KEY
+  //   npx wrangler secret put AZURE_OPENAI_ENDPOINT
+}

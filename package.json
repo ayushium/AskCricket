@@ -1,0 +1,14 @@
+{
+  "name": "askcricket",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "flatten": "node scripts/flatten.js"
+  },
+  "devDependencies": {
+    "wrangler": "^4.92.0"
+  }
+}
