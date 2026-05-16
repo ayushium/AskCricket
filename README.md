@@ -8,7 +8,7 @@ Built with **Azure OpenAI gpt-5.4-mini** (Responses API), **Cloudflare Workers**
 
 ## Demo
 
-**Live:** https://askcricket.ayushium.workers.dev
+**Live:** http://askcricket.ayushmakwana.com
 
 Try asking:
 - *"Was Kohli clutch in IPL 2024?"*
