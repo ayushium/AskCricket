@@ -4,8 +4,8 @@ build/
 .env
 .vscode/
 .dev.vars
-raw_matches/*.json
+raw_matches/
 ipl_json.zip
 ipl_json_all/
-src/data.json
 .wrangler/
+
