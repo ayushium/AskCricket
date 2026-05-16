@@ -48,6 +48,48 @@
 
     .stat-card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
     .stat-card { transition: transform 150ms, box-shadow 150ms; }
+
+    /* Info modal */
+    #info-modal.open { display: flex; }
+
+    .info-tab {
+      font-size: 0.75rem; font-weight: 500; padding: 0.375rem 0.875rem;
+      border-radius: 0.5rem 0.5rem 0 0; color: #6b7280;
+      border-bottom: 2px solid transparent; transition: all 150ms; cursor: pointer;
+      margin-bottom: -1px;
+    }
+    .info-tab:hover { color: #111827; background: #f9fafb; }
+    .info-tab.active-tab { color: #059669; border-bottom-color: #059669; background: white; }
+
+    .flow-step {
+      display: flex; gap: 0.875rem; align-items: flex-start;
+      background: #f9fafb; border: 1px solid #e5e7eb;
+      border-radius: 0.875rem; padding: 0.875rem 1rem;
+      animation: fadeUp 300ms ease-out both;
+      animation-delay: calc(var(--i) * 60ms);
+    }
+    .flow-icon {
+      width: 1.75rem; height: 1.75rem; border-radius: 0.5rem;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem; font-weight: 700; flex-shrink: 0;
+    }
+    .flow-arrow { text-align: center; color: #d1d5db; font-size: 1.1rem; line-height: 1; }
+
+    .stack-card {
+      display: flex; gap: 0.875rem; align-items: flex-start;
+      border: 1px solid; border-radius: 0.875rem; padding: 0.875rem 1rem;
+    }
+    .stack-icon { font-size: 1.25rem; flex-shrink: 0; margin-top: 1px; }
+
+    .tool-row {
+      background: #f9fafb; border: 1px solid #e5e7eb;
+      border-radius: 0.75rem; padding: 0.75rem 1rem;
+    }
+    .tool-name {
+      font-size: 0.75rem; font-weight: 600; color: #059669;
+      background: #ecfdf5; border: 1px solid #a7f3d0;
+      padding: 0.15rem 0.5rem; border-radius: 0.375rem;
+    }
   </style>
 </head>
 <body class="bg-gray-50 text-gray-900 min-h-screen flex flex-col">
@@ -63,11 +105,212 @@
       <span class="hidden sm:flex items-center gap-1.5 text-xs text-gray-400 bg-emerald-50 border border-emerald-100 px-2.5 py-1 rounded-full">
         <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Live agent
       </span>
+      <button id="info-btn" title="About this project" class="text-xs text-gray-400 hover:text-gray-700 px-3 py-1.5 rounded-lg hover:bg-gray-100 transition-colors flex items-center gap-1.5">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        About
+      </button>
       <button id="clear-btn" class="text-xs text-gray-400 hover:text-gray-700 px-3 py-1.5 rounded-lg hover:bg-gray-100 transition-colors">
         Clear chat
       </button>
     </div>
   </header>
+
+  <!-- Info Modal -->
+  <div id="info-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
+    <!-- Backdrop -->
+    <div id="info-backdrop" class="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
+
+    <!-- Panel -->
+    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[88vh] flex flex-col overflow-hidden" style="animation: fadeUp 250ms ease-out both">
+
+      <!-- Modal header -->
+      <div class="flex items-center gap-3 px-6 py-4 border-b border-gray-100 flex-shrink-0">
+        <div class="w-9 h-9 bg-emerald-500 rounded-xl flex items-center justify-center text-white text-lg shadow-sm">🏏</div>
+        <div>
+          <h2 class="font-bold text-gray-900 leading-none">AskCricket</h2>
+          <p class="text-xs text-gray-400 mt-0.5">Agentic IPL Analyst — GDG Baroda Hackathon</p>
+        </div>
+        <button id="info-close" class="ml-auto text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg p-1.5 transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+
+      <!-- Tabs -->
+      <div class="flex gap-1 px-6 pt-3 flex-shrink-0 border-b border-gray-100">
+        <button class="info-tab active-tab" data-tab="flow">Flow</button>
+        <button class="info-tab" data-tab="stack">Tech Stack</button>
+        <button class="info-tab" data-tab="tools">Tools</button>
+        <button class="info-tab" data-tab="data">Data</button>
+      </div>
+
+      <!-- Tab content -->
+      <div class="overflow-y-auto flex-1 px-6 py-5">
+
+        <!-- Flow tab -->
+        <div class="tab-panel" id="tab-flow">
+          <p class="text-sm text-gray-500 mb-4">A question goes through three hops before an answer appears.</p>
+
+          <div class="space-y-2">
+            <div class="flow-step" style="--i:0">
+              <div class="flow-icon bg-emerald-100 text-emerald-700">1</div>
+              <div>
+                <p class="font-semibold text-gray-800 text-sm">User asks a question</p>
+                <p class="text-xs text-gray-500 mt-0.5">Browser sends the query to <code class="bg-gray-100 px-1 rounded">/api/ask</code> as a GET request, opening an SSE stream.</p>
+              </div>
+            </div>
+            <div class="flow-arrow">↓</div>
+            <div class="flow-step" style="--i:1">
+              <div class="flow-icon bg-blue-100 text-blue-700">2</div>
+              <div>
+                <p class="font-semibold text-gray-800 text-sm">Agent loop — up to 5 rounds</p>
+                <p class="text-xs text-gray-500 mt-0.5">The Cloudflare Worker runs an async generator. Round 0 forces a tool call (<code class="bg-gray-100 px-1 rounded">tool_choice: "required"</code>) so the model can never guess. Subsequent rounds are <code class="bg-gray-100 px-1 rounded">auto</code> with JSON output mode.</p>
+              </div>
+            </div>
+            <div class="flow-arrow">↓</div>
+            <div class="flow-step" style="--i:2">
+              <div class="flow-icon bg-violet-100 text-violet-700">3</div>
+              <div>
+                <p class="font-semibold text-gray-800 text-sm">Tool execution — pure JS, in-memory</p>
+                <p class="text-xs text-gray-500 mt-0.5">Each tool call runs synchronously over 34,388 deliveries bundled as an ES module. Zero network round-trips. Results are appended back into the conversation.</p>
+              </div>
+            </div>
+            <div class="flow-arrow">↓</div>
+            <div class="flow-step" style="--i:3">
+              <div class="flow-icon bg-amber-100 text-amber-700">4</div>
+              <div>
+                <p class="font-semibold text-gray-800 text-sm">Azure OpenAI — gpt-5.4-mini</p>
+                <p class="text-xs text-gray-500 mt-0.5">Uses the <strong>Responses API</strong> (<code class="bg-gray-100 px-1 rounded">/openai/responses</code>), not Chat Completions. System prompt goes into <code class="bg-gray-100 px-1 rounded">instructions</code>, tool results as <code class="bg-gray-100 px-1 rounded">function_call_output</code> items.</p>
+              </div>
+            </div>
+            <div class="flow-arrow">↓</div>
+            <div class="flow-step" style="--i:4">
+              <div class="flow-icon bg-rose-100 text-rose-700">5</div>
+              <div>
+                <p class="font-semibold text-gray-800 text-sm">SSE → Answer card</p>
+                <p class="text-xs text-gray-500 mt-0.5">The Worker streams <code class="bg-gray-100 px-1 rounded">tool_call</code> events (chips animate in real-time) then a <code class="bg-gray-100 px-1 rounded">final</code> event with a structured JSON payload — headline, insight, chart, sources, follow-ups.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stack tab -->
+        <div class="tab-panel hidden" id="tab-stack">
+          <p class="text-sm text-gray-500 mb-4">Every layer runs at the edge. No servers. No databases.</p>
+          <div class="grid grid-cols-1 gap-3">
+            <div class="stack-card border-orange-200 bg-orange-50">
+              <div class="stack-icon">☁️</div>
+              <div>
+                <p class="font-semibold text-gray-800 text-sm">Cloudflare Workers</p>
+                <p class="text-xs text-gray-500 mt-0.5">Serverless edge runtime. Handles routing, SSE streaming via <code class="bg-white/60 px-1 rounded">TransformStream</code>, and serves static assets — all from a single Worker.</p>
+              </div>
+            </div>
+            <div class="stack-card border-blue-200 bg-blue-50">
+              <div class="stack-icon">🤖</div>
+              <div>
+                <p class="font-semibold text-gray-800 text-sm">Azure OpenAI — gpt-5.4-mini</p>
+                <p class="text-xs text-gray-500 mt-0.5">Latest model via the Responses API. Native function calling, structured JSON output, and <code class="bg-white/60 px-1 rounded">instructions</code> field for system prompts.</p>
+              </div>
+            </div>
+            <div class="stack-card border-emerald-200 bg-emerald-50">
+              <div class="stack-icon">📦</div>
+              <div>
+                <p class="font-semibold text-gray-800 text-sm">Static JSON as ES Module</p>
+                <p class="text-xs text-gray-500 mt-0.5">The entire 34 k-delivery dataset is bundled into the Worker as <code class="bg-white/60 px-1 rounded">import data from "./data.json"</code>. 12 MB raw, 306 KB gzip — well within Worker limits.</p>
+              </div>
+            </div>
+            <div class="stack-card border-yellow-200 bg-yellow-50">
+              <div class="stack-icon">⚡</div>
+              <div>
+                <p class="font-semibold text-gray-800 text-sm">Vanilla JS + Tailwind CDN</p>
+                <p class="text-xs text-gray-500 mt-0.5">Zero build step, zero framework. SSE via <code class="bg-white/60 px-1 rounded">EventSource</code>, SVG charts hand-rolled, player name linkification with regex — all in plain JS.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tools tab -->
+        <div class="tab-panel hidden" id="tab-tools">
+          <p class="text-sm text-gray-500 mb-4">Six pure-JS functions. No async. No I/O. The agent picks which to call.</p>
+          <div class="space-y-2.5">
+            <div class="tool-row">
+              <code class="tool-name">get_player_stats</code>
+              <p class="text-xs text-gray-500 mt-1">Batting and bowling splits for any player — filterable by season (2024/2025), phase (powerplay/middle/death), and opponent team.</p>
+            </div>
+            <div class="tool-row">
+              <code class="tool-name">compare_players</code>
+              <p class="text-xs text-gray-500 mt-1">Side-by-side comparison of 2–4 players on a chosen metric (strike rate, economy, average, wickets…). Drives most "X vs Y" questions.</p>
+            </div>
+            <div class="tool-row">
+              <code class="tool-name">find_matches</code>
+              <p class="text-xs text-gray-500 mt-1">Looks up matches by season, stage (Final, Qualifier), or team. Called first for "Who won IPL 2024?" style questions to get the right match ID before fetching context.</p>
+            </div>
+            <div class="tool-row">
+              <code class="tool-name">match_context</code>
+              <p class="text-xs text-gray-500 mt-1">Full match summary — teams, venue, innings totals, wickets, result — for a given Cricsheet match ID.</p>
+            </div>
+            <div class="tool-row">
+              <code class="tool-name">clutch_index</code>
+              <p class="text-xs text-gray-500 mt-1">Composite 0–100 pressure score. Weights death-overs performance (40%), boundary/dot % under pressure (30%), and sample-size confidence (30%). Answers "Was X clutch?"</p>
+            </div>
+            <div class="tool-row">
+              <code class="tool-name">head_to_head</code>
+              <p class="text-xs text-gray-500 mt-1">Batter vs bowler matchup — balls faced, runs, dismissals, strike rate. Filterable by season.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Data tab -->
+        <div class="tab-panel hidden" id="tab-data">
+          <p class="text-sm text-gray-500 mb-4">Ball-by-ball Cricsheet data, flattened and bundled at build time.</p>
+
+          <div class="grid grid-cols-3 gap-2 mb-5">
+            <div class="text-center bg-emerald-50 border border-emerald-100 rounded-xl p-3">
+              <p class="text-2xl font-bold text-emerald-600">145</p>
+              <p class="text-xs text-gray-500 mt-0.5">Matches</p>
+            </div>
+            <div class="text-center bg-blue-50 border border-blue-100 rounded-xl p-3">
+              <p class="text-2xl font-bold text-blue-600">34,388</p>
+              <p class="text-xs text-gray-500 mt-0.5">Deliveries</p>
+            </div>
+            <div class="text-center bg-violet-50 border border-violet-100 rounded-xl p-3">
+              <p class="text-2xl font-bold text-violet-600">222</p>
+              <p class="text-xs text-gray-500 mt-0.5">Players</p>
+            </div>
+          </div>
+
+          <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Row schema</p>
+          <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 font-mono text-xs text-gray-600 leading-relaxed space-y-1">
+            <div><span class="text-violet-600">match_id</span>   <span class="text-gray-400">// Cricsheet match ID</span></div>
+            <div><span class="text-violet-600">season</span>     <span class="text-gray-400">// "2024" | "2025"</span></div>
+            <div><span class="text-violet-600">date</span>       <span class="text-gray-400">// "YYYY-MM-DD"</span></div>
+            <div><span class="text-violet-600">stage</span>      <span class="text-gray-400">// "Final" | "Qualifier 1" | ""</span></div>
+            <div><span class="text-violet-600">innings</span>    <span class="text-gray-400">// 1 | 2</span></div>
+            <div><span class="text-violet-600">over</span>       <span class="text-gray-400">// 0–19</span></div>
+            <div><span class="text-violet-600">phase</span>      <span class="text-gray-400">// "powerplay" | "middle" | "death"</span></div>
+            <div><span class="text-violet-600">batter</span>     <span class="text-gray-400">// player name</span></div>
+            <div><span class="text-violet-600">bowler</span>     <span class="text-gray-400">// player name</span></div>
+            <div><span class="text-violet-600">runs_batter</span> <span class="text-gray-400">// runs off the bat</span></div>
+            <div><span class="text-violet-600">wicket</span>     <span class="text-gray-400">// boolean</span></div>
+            <div><span class="text-violet-600">venue</span>      <span class="text-gray-400">// stadium name</span></div>
+            <div><span class="text-violet-600">result</span>     <span class="text-gray-400">// winning team</span></div>
+          </div>
+
+          <p class="text-xs text-gray-400 mt-3">Source: <a href="https://cricsheet.org" target="_blank" class="text-emerald-600 hover:underline">cricsheet.org</a> · Flattened by <code class="bg-gray-100 px-1 rounded">scripts/flatten.js</code></p>
+        </div>
+
+      </div>
+
+      <!-- Footer -->
+      <div class="px-6 py-3 border-t border-gray-100 flex items-center justify-between flex-shrink-0">
+        <p class="text-xs text-gray-400">Built at <strong class="text-gray-600">GDG Baroda · Build with AI Hackathon</strong></p>
+        <a href="https://github.com/ayushium/AskCricket" target="_blank" class="text-xs text-gray-400 hover:text-gray-700 flex items-center gap-1 transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+          GitHub
+        </a>
+      </div>
+
+    </div>
+  </div>
 
   <!-- Main -->
   <div class="flex-1 flex flex-col max-w-3xl mx-auto w-full px-4 pb-4">
@@ -143,6 +386,24 @@
 
   </div>
 
+  <script>
+    const modal    = document.getElementById("info-modal");
+    const backdrop = document.getElementById("info-backdrop");
+
+    document.getElementById("info-btn").addEventListener("click", () => modal.classList.add("open"));
+    document.getElementById("info-close").addEventListener("click", () => modal.classList.remove("open"));
+    backdrop.addEventListener("click", () => modal.classList.remove("open"));
+    document.addEventListener("keydown", e => { if (e.key === "Escape") modal.classList.remove("open"); });
+
+    document.querySelectorAll(".info-tab").forEach(tab => {
+      tab.addEventListener("click", () => {
+        document.querySelectorAll(".info-tab").forEach(t => t.classList.remove("active-tab"));
+        document.querySelectorAll(".tab-panel").forEach(p => p.classList.add("hidden"));
+        tab.classList.add("active-tab");
+        document.getElementById("tab-" + tab.dataset.tab).classList.remove("hidden");
+      });
+    });
+  </script>
   <script src="/app.js"></script>
 </body>
 </html>
