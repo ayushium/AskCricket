@@ -9,12 +9,12 @@ const KNOWN_PLAYERS = [
 ].sort((a, b) => b.length - a.length);
 
 const STAT_CARDS = [
-  { label: "Matches",    value: "145",    sub: "IPL 2024 & 2025",    icon: "🏟️",  bg: "bg-blue-50",    num: "text-blue-600"    },
-  { label: "Deliveries", value: "34,388", sub: "ball-by-ball",       icon: "🏏",  bg: "bg-emerald-50", num: "text-emerald-600" },
-  { label: "Players",    value: "222",    sub: "unique batters",     icon: "👤",  bg: "bg-violet-50",  num: "text-violet-600"  },
-  { label: "Teams",      value: "10",     sub: "all IPL franchises", icon: "🏆",  bg: "bg-amber-50",   num: "text-amber-600"   },
-  { label: "Wickets",    value: "1,756",  sub: "across all matches", icon: "🎯",  bg: "bg-rose-50",    num: "text-rose-600"    },
-  { label: "Venues",     value: "14",     sub: "stadiums",           icon: "📍",  bg: "bg-teal-50",    num: "text-teal-600"    },
+  { label: "Matches",    value: "145",    icon: "🏟️",  border: "border-blue-200",    num: "text-blue-600"    },
+  { label: "Deliveries", value: "34,388", icon: "🏏",  border: "border-emerald-200", num: "text-emerald-600" },
+  { label: "Players",    value: "222",    icon: "👤",  border: "border-violet-200",  num: "text-violet-600"  },
+  { label: "Teams",      value: "10",     icon: "🏆",  border: "border-amber-200",   num: "text-amber-600"   },
+  { label: "Wickets",    value: "1,756",  icon: "🎯",  border: "border-rose-200",    num: "text-rose-600"    },
+  { label: "Venues",     value: "14",     icon: "📍",  border: "border-teal-200",    num: "text-teal-600"    },
 ];
 
 const form        = document.getElementById("ask-form");
@@ -32,13 +32,12 @@ let activeSource = null;
   const grid = document.getElementById("stat-cards");
   STAT_CARDS.forEach((card, i) => {
     const el = document.createElement("div");
-    el.className = `count-up stat-card ${card.bg} border border-gray-200 rounded-xl p-4 cursor-default`;
+    el.className = `count-up flex items-center gap-2.5 bg-white border ${card.border} rounded-xl px-4 py-2.5 cursor-default shadow-sm`;
     el.style.animationDelay = `${i * 60}ms`;
     el.innerHTML = `
-      <div class="text-xl mb-2">${card.icon}</div>
-      <div class="text-2xl font-bold ${card.num}">${escHtml(card.value)}</div>
-      <div class="text-sm font-semibold text-gray-700 mt-0.5">${escHtml(card.label)}</div>
-      <div class="text-xs text-gray-400 mt-0.5">${escHtml(card.sub)}</div>
+      <span class="text-base">${card.icon}</span>
+      <span class="font-bold ${card.num} text-base">${escHtml(card.value)}</span>
+      <span class="text-xs text-gray-500">${escHtml(card.label)}</span>
     `;
     grid.appendChild(el);
   });

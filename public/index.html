@@ -316,14 +316,14 @@
   <div class="flex-1 flex flex-col max-w-3xl mx-auto w-full px-4 pb-4">
 
     <!-- Chat history -->
-    <div id="chat-history" class="flex-1 overflow-y-auto py-6 space-y-6 min-h-0" style="max-height: calc(100vh - 210px)">
+    <div id="chat-history" class="flex-1 overflow-y-auto py-6 space-y-6 min-h-0">
 
       <!-- Stats dashboard -->
-      <div id="stats-dashboard" class="fade-up">
+      <div id="stats-dashboard" class="fade-up flex flex-col items-center justify-center gap-6 py-6">
 
         <!-- Hero -->
-        <div class="text-center mb-8 pt-2">
-          <div class="inline-flex items-center gap-2 bg-emerald-50 border border-emerald-100 text-emerald-700 text-xs font-medium px-3 py-1.5 rounded-full mb-4">
+        <div class="text-center">
+          <div class="inline-flex items-center gap-2 bg-emerald-50 border border-emerald-100 text-emerald-700 text-xs font-medium px-3 py-1.5 rounded-full mb-3">
             <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
             Ball-by-ball IPL 2024 & 2025 data
           </div>
@@ -331,27 +331,21 @@
           <p class="text-gray-500 text-sm">Ask anything — the agent reads every delivery to answer.</p>
         </div>
 
-        <!-- Stat cards -->
-        <div id="stat-cards" class="grid grid-cols-3 gap-3 mb-8"></div>
+        <!-- Stat chips — single scrolling row -->
+        <div id="stat-cards" class="flex gap-2 flex-wrap justify-center"></div>
 
-        <!-- Suggestions -->
-        <div>
-          <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-3">Try asking</p>
-          <div class="flex flex-col gap-2">
-            <button class="suggestion group text-left w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-white border border-gray-200 hover:border-emerald-300 hover:bg-emerald-50 transition-all text-sm text-gray-700 shadow-sm">
-              <span class="text-emerald-500 text-base">🏏</span>
-              <span>Was Kohli clutch in the 2024 season?</span>
-              <span class="ml-auto text-gray-300 group-hover:text-emerald-400 transition-colors">→</span>
+        <!-- Suggestion pills -->
+        <div class="w-full">
+          <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2.5 text-center">Try asking</p>
+          <div class="flex flex-wrap gap-2 justify-center">
+            <button class="suggestion group flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-gray-200 hover:border-emerald-300 hover:bg-emerald-50 transition-all text-sm text-gray-700 shadow-sm">
+              <span>🏏</span><span>Was Kohli clutch in the 2024 season?</span>
             </button>
-            <button class="suggestion group text-left w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-white border border-gray-200 hover:border-emerald-300 hover:bg-emerald-50 transition-all text-sm text-gray-700 shadow-sm">
-              <span class="text-emerald-500 text-base">⚡</span>
-              <span>Compare Bumrah vs Rashid Khan in death overs</span>
-              <span class="ml-auto text-gray-300 group-hover:text-emerald-400 transition-colors">→</span>
+            <button class="suggestion group flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-gray-200 hover:border-emerald-300 hover:bg-emerald-50 transition-all text-sm text-gray-700 shadow-sm">
+              <span>⚡</span><span>Compare Bumrah vs Rashid Khan in death overs</span>
             </button>
-            <button class="suggestion group text-left w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-white border border-gray-200 hover:border-emerald-300 hover:bg-emerald-50 transition-all text-sm text-gray-700 shadow-sm">
-              <span class="text-emerald-500 text-base">🏆</span>
-              <span>Who should I pick as captain for CSK vs MI?</span>
-              <span class="ml-auto text-gray-300 group-hover:text-emerald-400 transition-colors">→</span>
+            <button class="suggestion group flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-gray-200 hover:border-emerald-300 hover:bg-emerald-50 transition-all text-sm text-gray-700 shadow-sm">
+              <span>🏆</span><span>Who should I pick as captain for CSK vs MI?</span>
             </button>
           </div>
         </div>
